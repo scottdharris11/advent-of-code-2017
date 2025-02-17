@@ -1,0 +1,63 @@
+"""utility imports"""
+from utilities.data import read_lines
+from utilities.runner import runner
+
+@runner("Day 7", "Part 1")
+def solve_part1(lines: list[str]) -> str:
+    """part 1 solving function"""
+    programs = {}
+    for line in lines:
+        p = Program(line)
+        programs[p.id] = p
+    for i, p in programs.items():
+        for c in p.children:
+            cp = programs[c]
+            cp.parent = i
+    for _, p in programs.items():
+        if p.parent is None:
+            return p.id
+    return "unknown"
+
+@runner("Day 7", "Part 2")
+def solve_part2(lines: list[str]):
+    """part 2 solving function"""
+    return len(lines)
+
+class Program:
+    """defines a program structure"""
+    def __init__(self, line: str):
+        pieces = line.split(" ")
+        self.id = pieces[0]
+        self.weight = int(pieces[1][1:-1])
+        self.parent = None
+        self.children = []
+        if len(pieces) > 2:
+            for i in range(3, len(pieces)):
+                self.children.append(pieces[i].replace(",",""))
+
+    def __repr__(self):
+        return str((self.id, self.weight, self.parent, self.children))
+
+# Data
+data = read_lines("input/day07/input.txt")
+sample = """pbga (66)
+xhth (57)
+ebii (61)
+havc (66)
+ktlj (57)
+fwft (72) -> ktlj, cntj, xhth
+qoyq (66)
+padx (45) -> pbga, havc, qoyq
+tknk (41) -> ugml, padx, fwft
+jptl (61)
+ugml (68) -> gyxo, ebii, jptl
+gyxo (61)
+cntj (57)""".splitlines()
+
+# Part 1
+assert solve_part1(sample) == "tknk"
+assert solve_part1(data) == "mwzaxaj"
+
+# Part 2
+assert solve_part2(sample) == -1
+assert solve_part2(data) == -1
