@@ -10,16 +10,21 @@ def solve_part1(lines: list[str]) -> int:
     registers = {}
     for o in operations:
         registers = o.execute(registers)
-    mr = None
-    for r in registers.values():
-        if mr == None or r > mr:
-            mr = r
-    return mr
+    return max(registers.values())
 
 @runner("Day 8", "Part 2")
 def solve_part2(lines: list[str]) -> int:
     """part 2 solving function"""
-    return len(lines)
+    operations = [Operation(l) for l in lines]
+    registers = {}
+    mval = None
+    for o in operations:
+        registers = o.execute(registers)
+        if len(registers) > 0:
+            m = max(registers.values())
+            if mval is None or m > mval:
+                mval = m
+    return mval
 
 OP_PARSE = re.compile(r'([a-z]+) (inc|dec) ([-\d]+) if ([a-z]+) (<|>|==|!=|<=|>=) ([-\d]+)')
 
@@ -41,7 +46,6 @@ class Operation:
 
     def execute(self, registers: dict[str,int]) -> dict[str,int]:
         """apply operation to supplied registers"""
-        value = registers.get(self.op_register, 0)
         cvalue = registers.get(self.check_register, 0)
         match self.check_condition:
             case ">":
@@ -62,6 +66,7 @@ class Operation:
             case "<=":
                 if cvalue > self.check_amount:
                     return registers
+        value = registers.get(self.op_register, 0)
         registers[self.op_register] = value + self.op_amount
         return registers
 
@@ -77,5 +82,5 @@ assert solve_part1(sample) == 1
 assert solve_part1(data) == 4567
 
 # Part 2
-assert solve_part2(sample) == -1
-assert solve_part2(data) == -1
+assert solve_part2(sample) == 10
+assert solve_part2(data) == 5636
