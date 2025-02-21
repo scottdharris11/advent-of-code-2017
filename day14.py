@@ -15,7 +15,18 @@ def solve_part1(key: str) -> int:
 @runner("Day 14", "Part 2")
 def solve_part2(key: str) -> int:
     """part 2 solving function"""
-    return len(key)
+    disk = build_disk(key)
+    regions = 0
+    cataloged = set()
+    for y, row in enumerate(disk):
+        for x, b in enumerate(row):
+            if b == '0':
+                continue
+            if (x,y) in cataloged:
+                continue
+            regions += 1
+            explore_region(disk, (x,y), cataloged)
+    return regions
 
 def build_disk(key: str) -> list[str]:
     """build disk layout from supplied key"""
@@ -25,7 +36,7 @@ def build_disk(key: str) -> list[str]:
         seqs.extend([17, 31, 73, 47, 23])
         sparse = knot_hash(seqs, 256, 64)
         dense = dense_hash(sparse)
-        disk.append(to_binary(dense))
+        disk.append(hex_to_binary(to_hex(dense)))
     return disk
 
 def knot_hash(seqs: list[int], size: int, rounds: int) -> list[int]:
@@ -64,17 +75,40 @@ def dense_hash(sparse: list[int]) -> list[int]:
         dense.append(d)
     return dense
 
-def to_binary(values: list[int]) -> str:
+def to_hex(values: list[int]) -> str:
+    """convert array of decimal values into a hex representation"""
+    h = ""
+    for v in values:
+        o = hex(v)[2:]
+        if len(o) == 1:
+            o = "0" + o
+        h += o
+    return h
+
+def hex_to_binary(s: str) -> str:
     """bits for the supplied hex char"""
     b = ""
-    for v in values:
-        b += bin(v)[2:].zfill(4)
+    for v in s:
+        b += bin(int(v,16))[2:].zfill(4)
     return b
+
+def explore_region(disk: list[str], loc: tuple[int,int], cataloged: set[tuple[int,int]]):
+    """catalog adjacent used spots of disk from supplied loc"""
+    if loc in cataloged:
+        return
+    cataloged.add(loc)
+    for m in [(1,0),(-1,0),(0,-1),(0,1)]:
+        x = loc[0] + m[0]
+        y = loc[1] + m[1]
+        if x < 0 or x >= 128 or y < 0 or y >= 128:
+            continue
+        if disk[y][x] == '1':
+            explore_region(disk, (x,y), cataloged)
 
 # Part 1
 assert solve_part1("flqrgnkx") == 8108
 assert solve_part1("amgozmfv") == 8222
 
 # Part 2
-assert solve_part2("flqrgnkx") == 0
-assert solve_part2("amgozmfv") == 0
+assert solve_part2("flqrgnkx") == 1242
+assert solve_part2("amgozmfv") == 1086
