@@ -6,8 +6,8 @@ from utilities.runner import runner
 def solve_part1(lines: list[str]) -> int:
     """part 1 solving function"""
     severity = 0
-    for depth, size in parse_scanners(lines):
-        if caught(depth, size):
+    for depth, size, cycle in parse_scanners(lines):
+        if depth % cycle == 0:
             severity += depth * size
     return severity
 
@@ -17,13 +17,10 @@ def solve_part2(lines: list[str]) -> int:
     scanners = parse_scanners(lines)
     delay = 0
     while True:
-        c = False
-        for s in scanners:
-            depth, size = s
-            if caught(delay+depth, size):
-                c = True
+        for depth, _, cycle in scanners:
+            if (delay+depth) % cycle == 0:
                 break
-        if not c:
+        else:
             break
         delay += 1
     return delay
@@ -31,15 +28,10 @@ def solve_part2(lines: list[str]) -> int:
 def parse_scanners(lines: list[str]) -> list[tuple[int,int]]:
     """parse scanners from input"""
     scanners = []
-    for line in lines:
-        scanner = [int(x) for x in line.split(": ")]
-        scanners.append(tuple(scanner))
+    for depth, size in [[int(x) for x in line.split(": ")] for line in lines]:
+        cycle = (size - 1) * 2
+        scanners.append((depth, size, cycle))
     return scanners
-
-def caught(pico: int, size: int) -> bool:
-    """determine if the scanner will catch you"""
-    every = (size - 1) * 2
-    return pico % every == 0
 
 # Data
 data = read_lines("input/day13/input.txt")
