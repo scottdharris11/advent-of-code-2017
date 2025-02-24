@@ -6,12 +6,13 @@ from utilities.runner import runner
 def solve_part1(lines: list[str]) -> str:
     """part 1 solving function"""
     diagram = Diagram(lines)
-    return follow_route(diagram)
+    return follow_route(diagram)[0]
 
 @runner("Day 19", "Part 2")
 def solve_part2(lines: list[str]) -> int:
     """part 2 solving function"""
-    return 0
+    diagram = Diagram(lines)
+    return follow_route(diagram)[1]
 
 UP = (0,-1)
 DOWN = (0,1)
@@ -43,9 +44,10 @@ class Diagram:
         """determine if location is off diagram"""
         return loc[0] < 0 or loc[1] < 0 or loc[0] > self.width or loc[1] > self.height
 
-def follow_route(d: Diagram) -> str:
+def follow_route(d: Diagram) -> tuple[str,int]:
     """follow route till the end"""
     route = ""
+    steps = 1
     loc = d.start
     move = DOWN
     while True:
@@ -53,12 +55,11 @@ def follow_route(d: Diagram) -> str:
         if d.off_diagram(loc):
             break
         p = d.point(loc)
+        if p == ' ':
+            break
+        steps += 1
         match p:
-            case ' ':
-                break
-            case '|':
-                continue
-            case '-':
+            case '|' | '-':
                 continue
             case '+':
                 check = [RIGHT, LEFT]
@@ -74,13 +75,11 @@ def follow_route(d: Diagram) -> str:
                     break
             case _:
                 route += p
-    return route
-
-
+    return route, steps
 
 # Data
 data = read_lines("input/day19/input.txt")
-sample = """     |          
+sample = """     |
      |  +--+    
      A  |  C    
  F---|----E|--+ 
@@ -93,5 +92,5 @@ assert solve_part1(sample) == "ABCDEF"
 assert solve_part1(data) == "RYLONKEWB"
 
 # Part 2
-assert solve_part2(sample) == 0
-assert solve_part2(data) == 0
+assert solve_part2(sample) == 38
+assert solve_part2(data) == 16016
