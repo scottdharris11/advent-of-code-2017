@@ -24,6 +24,12 @@ def solve_part2(lines: list[str]) -> int:
     particles = {}
     for i, line in enumerate(lines):
         particles[i] = Particle(line)
+    # Since collisions seem to happen within a few number of ticks,
+    # just going to brute force this and walk it tick by tick looking
+    # for collisions.  Every so often (25 ticks), check to see if there
+    # are existing particles that will never collide with anything and
+    # if so, remove and count them as the "remaining".  Do this, until
+    # there are no particles left.
     remain = 0
     check_collisions = False
     ticks_since_check = 0
