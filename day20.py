@@ -24,49 +24,17 @@ def solve_part2(lines: list[str]) -> int:
     particles = {}
     for i, line in enumerate(lines):
         particles[i] = Particle(line)
-    # This is pretty ugly but achieving the right answer.  Look
-    # to potentially optimize.  logic path:
-    #
-    # Start with Particle map by index
-    # Remain = 0
-    # check collisions = true
-    # While particle map is not empty
-	#    if check collisions is true
-	#	    check collisions = false
-	#   	compare each particle to determine if collision is possible
-	#   	for each particle where not collision possible
-	#   		increase “remain”
-	#   		remove from particle map
-	#   move particles to next time step and look for collisions (position equal)
-	#   if at least one collision
-	#   	check collisions = true (also check every so often if no collision)
-	#   	for each collision
-	#   		remove from particle map
     remain = 0
-    col_check = True
-    clock = 0
-    times_since_col = 0
+    check_collisions = False
+    ticks_since_check = 0
     while len(particles) > 0:
-        clock += 1
-        if col_check:
-            col_check = False
-            c = set()
-            for a, p1 in particles.items():
-                for b, p2 in particles.items():
-                    if b <= a:
-                        continue
-                    if can_collide(p1, p2):
-                        c.add(a)
-                        c.add(b)
-            delete = set()
-            for i in particles:
-                if i in c:
-                    continue
-                delete.add(i)
-                remain += 1
-            for d in delete:
-                del particles[d]
-        times_since_col += 1
+        if check_collisions:
+            check_collisions = False
+            ticks_since_check = 0
+            nc = no_future_collisions(particles)
+            remain += len(nc)
+            for p in nc:
+                del particles[p]
         positions = {}
         for i, p in particles.items():
             pos = p.tick()
@@ -76,13 +44,11 @@ def solve_part2(lines: list[str]) -> int:
         for _, p in positions.items():
             if len(p) == 1:
                 continue
-            times_since_col = 0
-            col_check = True
             for i in p:
                 del particles[i]
-        if times_since_col > 25:
-            times_since_col = 0
-            col_check = True
+        ticks_since_check += 1
+        if ticks_since_check > 25:
+            check_collisions = True
     return remain
 
 class Particle:
@@ -111,6 +77,20 @@ class Particle:
         self.v = (vx, vy, vz)
         self.p = (x + vx, y + vy, z + vz)
         return self.p
+
+def no_future_collisions(particles: dict[int,Particle]) -> set[int]:
+    """find particles that can't collide with any other in the future"""
+    nc = set(particles.keys())
+    for a, p1 in particles.items():
+        for b, p2 in particles.items():
+            if b <= a:
+                continue
+            if can_collide(p1, p2):
+                if a in nc:
+                    nc.remove(a)
+                if b in nc:
+                    nc.remove(b)
+    return nc
 
 def can_collide(p1: Particle, p2: Particle) -> bool:
     """determine if the two particles could collide in the future"""
