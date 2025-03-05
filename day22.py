@@ -26,7 +26,27 @@ def solve_part1(lines: list[str]) -> int:
 @runner("Day 22", "Part 2")
 def solve_part2(lines: list[str]) -> int:
     """part 2 solving function"""
-    return 0
+    infected = dict.fromkeys(parse_input(lines), 'I')
+    loc = (0,0)
+    direction = 0
+    count = 0
+    for _ in range(10000000):
+        match infected.get(loc, 'C'):
+            case 'I':
+                direction = turn(direction, True)
+                infected[loc] = 'F'
+            case 'W':
+                count += 1
+                infected[loc] = 'I'
+            case 'F':
+                direction = turn(turn(direction, True), True)
+                del infected[loc]
+            case 'C':
+                direction = turn(direction, False)
+                infected[loc] = 'W'
+        adjust = DIRECTIONS[direction]
+        loc = (loc[0]+adjust[0], loc[1]+adjust[1])
+    return count
 
 def turn(direction: int, right: bool) -> int:
     """turn from current direction"""
@@ -58,5 +78,5 @@ assert solve_part1(sample) == 5587
 assert solve_part1(data) == 5261
 
 # Part 2
-assert solve_part2(sample) == 0
-assert solve_part2(data) == 0
+assert solve_part2(sample) == 2511944
+assert solve_part2(data) == 2511927
