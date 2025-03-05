@@ -8,29 +8,17 @@ def solve_part1(lines: list[str], iterations: int) -> int:
     patterns = parse_patterns(lines)
     size, image = on_points(".#./..#/###")
     for _ in range(iterations):
-        adjusted = set()
-        cs = 3
-        if size % 2 == 0:
-            cs = 2
-        chunks = size // cs
-        ps = None
-        for y in range(chunks):
-            y_offset = y * cs
-            for x in range(chunks):
-                x_offset = x * cs
-                for p in patterns[cs]:
-                    if p.match(p.chunk(x_offset, y_offset, image)):
-                        ps = p.out_size
-                        adjusted.update(p.on_pixels(x*ps, y*ps))
-                        break
-        image = adjusted
-        size = chunks * ps
+        size, image = adjust_image(size, image, patterns)
     return len(image)
 
 @runner("Day 21", "Part 2")
 def solve_part2(lines: list[str]) -> int:
     """part 2 solving function"""
-    return 0
+    patterns = parse_patterns(lines)
+    size, image = on_points(".#./..#/###")
+    for _ in range(18):
+        size, image = adjust_image(size, image, patterns)
+    return len(image)
 
 class Pattern:
     """pattern structure"""
@@ -69,6 +57,25 @@ class Pattern:
         for p in self.out_points:
             on.add((p[0]+x_offset, p[1]+y_offset))
         return on
+
+def adjust_image(size: int, image: set[tuple[int,int]], patterns: list[Pattern]) -> tuple[int,set[tuple[int,int]]]:
+    """adjust an image based on current size, on pixels, and supplied patterns"""
+    adjusted = set()
+    cs = 3
+    if size % 2 == 0:
+        cs = 2
+    chunks = size // cs
+    ps = None
+    for y in range(chunks):
+        y_offset = y * cs
+        for x in range(chunks):
+            x_offset = x * cs
+            for p in patterns[cs]:
+                if p.match(p.chunk(x_offset, y_offset, image)):
+                    ps = p.out_size
+                    adjusted.update(p.on_pixels(x*ps, y*ps))
+                    break
+    return chunks * ps, adjusted
 
 def on_points(pattern: str) -> tuple[int,set[tuple[int,int]]]:
     """determine the points that are on in the supplied pattern"""
@@ -134,5 +141,4 @@ assert solve_part1(sample, 2) == 12
 assert solve_part1(data, 5) == 186
 
 # Part 2
-assert solve_part2(sample) == 0
-assert solve_part2(data) == 0
+assert solve_part2(data) == 3018423
